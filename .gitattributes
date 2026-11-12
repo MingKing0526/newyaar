@@ -1,0 +1,7 @@
+# 双机（Windows / Mac）同步：文本统一 LF，避免整文件换行符冲突
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
