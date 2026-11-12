@@ -1,0 +1,76 @@
+<view class="page">
+
+  <view class="head-row">
+    <text class="year-mark">丁未 · 羊年</text>
+    <text class="head-date">2027 年 2 月 6 日</text>
+  </view>
+  <view class="hair-line"></view>
+
+  <!-- 小羊：留存锚点，点进去摸一摸、喂一喂 -->
+  <view class="sheep-card" bindtap="goSheep" hover-class="pressed">
+    <image class="sheep-img mood-{{sheep.mood}}" src="/assets/goat.png" mode="aspectFit" />
+    <view class="sheep-info">
+      <view class="sheep-name">福气小羊 · {{sheep.levelName}}</view>
+      <view class="sheep-tip">{{sheep.tip}}</view>
+      <view class="sheep-meta">连续 {{streak}} 天 · 福气 {{fqi}}</view>
+    </view>
+    <view class="sheep-arrow">›</view>
+  </view>
+
+  <!-- 集福册 -->
+  <view class="section">
+    <view class="section-head">
+      <text class="section-title">羊年集福册</text>
+      <text class="section-note">{{gotCount}} / {{total}} 张</text>
+    </view>
+    <view class="grid">
+      <view class="cell {{item.got ? 'got' : ''}}" wx:for="{{cards}}" wx:key="id">
+        <view class="cell-ch">{{item.ch}}</view>
+        <view class="cell-name">{{item.name}}</view>
+        <view class="cell-rare" wx:if="{{item.rare > 0}}">{{item.rare === 2 ? '传说' : '稀有'}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 每日一答 -->
+  <view class="quiz" bindtap="openQuiz">
+    <view class="quiz-body">
+      <view class="quiz-label">{{quiz.done ? '今日已答' : '每日一答'}}</view>
+      <view class="quiz-q">{{quiz.done ? '明天还有一道，答对得一张卡' : quiz.q}}</view>
+    </view>
+    <view class="quiz-act">{{quiz.done ? '已完成' : '去答'}}</view>
+  </view>
+
+  <button class="btn-main go-game" bindtap="goGame">去接福 · 攒福气</button>
+
+  <view class="board-row">
+    <view class="board-entry" data-type="class" bindtap="goBoard">
+      <view class="be-title">班级榜</view>
+      <view class="be-note">看谁今年最旺</view>
+    </view>
+    <view class="board-entry" data-type="family" bindtap="goBoard">
+      <view class="be-title">家族榜</view>
+      <view class="be-note">发给亲戚一起玩</view>
+    </view>
+  </view>
+
+  <view class="foot-tip">原型版：数据存在本机，还没有接后端</view>
+
+  <!-- 每日一答弹层 -->
+  <view class="mask" wx:if="{{quizOpen}}" bindtap="closeQuiz">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet-title">今日一答</view>
+      <view class="sheet-q">{{quiz.q}}</view>
+      <view
+        class="opt {{quizPick === index ? 'pick' : ''}}"
+        wx:for="{{quiz.opts}}"
+        wx:key="*this"
+        data-i="{{index}}"
+        bindtap="pickOpt"
+      >{{item}}</view>
+      <view class="sheet-res" wx:if="{{quizResult}}">{{quizResult}}</view>
+      <button class="btn-line" bindtap="closeQuiz">收起</button>
+    </view>
+  </view>
+
+</view>

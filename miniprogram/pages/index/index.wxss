@@ -1,0 +1,213 @@
+.sheep-card {
+  position: relative;
+  z-index: 1;
+  margin-top: 26rpx;
+  display: flex;
+  align-items: center;
+  padding: 22rpx 22rpx;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(107, 25, 23, 0.1);
+  border-radius: 16rpx;
+}
+.pressed {
+  background: rgba(243, 231, 208, 0.9);
+}
+.sheep-img {
+  width: 124rpx;
+  height: 124rpx;
+  flex: 0 0 auto;
+}
+.sheep-img.mood-happy {
+  transform: scale(1.04);
+}
+.sheep-img.mood-hungry {
+  opacity: 0.78;
+}
+.sheep-info {
+  flex: 1;
+  min-width: 0;
+  padding-left: 18rpx;
+}
+.sheep-name {
+  font-family: "KaiTi", "STKaiti", serif;
+  font-size: 32rpx;
+  color: var(--deep);
+  letter-spacing: 2rpx;
+}
+.sheep-tip {
+  font-size: 24rpx;
+  color: #4E3A31;
+  margin-top: 6rpx;
+  line-height: 1.5;
+}
+.sheep-meta {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-top: 8rpx;
+}
+.sheep-arrow {
+  font-size: 40rpx;
+  color: rgba(107, 25, 23, 0.35);
+  padding-left: 10rpx;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.cell {
+  width: 23.4%;
+  margin-bottom: 14rpx;
+  padding: 18rpx 0 12rpx;
+  box-sizing: border-box;
+  text-align: center;
+  border: 1px dashed rgba(107, 25, 23, 0.28);
+  border-radius: 12rpx;
+  background: rgba(255, 255, 255, 0.38);
+  position: relative;
+}
+.cell.got {
+  background: var(--cinnabar);
+  border: 1px solid var(--cinnabar);
+  color: #FFF6E4;
+}
+.cell-ch {
+  font-family: "KaiTi", "STKaiti", serif;
+  font-size: 44rpx;
+  line-height: 1.1;
+  color: rgba(107, 25, 23, 0.32);
+}
+.cell.got .cell-ch {
+  color: #FFF6E4;
+}
+.cell-name {
+  font-size: 22rpx;
+  margin-top: 6rpx;
+  color: rgba(107, 25, 23, 0.4);
+}
+.cell.got .cell-name {
+  color: rgba(255, 246, 228, 0.9);
+}
+.cell-rare {
+  position: absolute;
+  right: 6rpx;
+  top: 6rpx;
+  font-size: 18rpx;
+  color: var(--gold);
+  transform: scale(0.9);
+  transform-origin: right top;
+}
+.cell.got .cell-rare {
+  color: #F7DDA6;
+}
+
+.quiz {
+  position: relative;
+  z-index: 1;
+  margin-top: 8rpx;
+  display: flex;
+  align-items: center;
+  padding: 24rpx 22rpx;
+  background: rgba(201, 154, 61, 0.1);
+  border: 1px solid rgba(201, 154, 61, 0.55);
+  border-radius: 16rpx;
+}
+.quiz-body {
+  flex: 1;
+  min-width: 0;
+}
+.quiz-label {
+  font-size: 20rpx;
+  color: #7A5520;
+  letter-spacing: 2rpx;
+}
+.quiz-q {
+  font-size: 26rpx;
+  color: #4E3A31;
+  margin-top: 8rpx;
+  line-height: 1.5;
+}
+.quiz-act {
+  flex: 0 0 auto;
+  font-size: 26rpx;
+  color: var(--cinnabar);
+  font-weight: 600;
+  padding-left: 16rpx;
+}
+
+.go-game {
+  position: relative;
+  z-index: 1;
+  margin: 30rpx 0 0;
+}
+
+.board-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16rpx;
+}
+.board-entry {
+  width: 48.5%;
+  padding: 22rpx 20rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(107, 25, 23, 0.1);
+  border-radius: 14rpx;
+  box-sizing: border-box;
+}
+.be-title {
+  font-family: "KaiTi", "STKaiti", serif;
+  font-size: 30rpx;
+  color: var(--deep);
+  letter-spacing: 2rpx;
+}
+.be-note {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-top: 6rpx;
+}
+
+.foot-tip {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  font-size: 20rpx;
+  color: var(--muted);
+  margin-top: 30rpx;
+}
+
+/* 弹层 */
+.sheet-title {
+  font-family: "KaiTi", "STKaiti", serif;
+  font-size: 30rpx;
+  color: var(--muted);
+  letter-spacing: 4rpx;
+  text-align: center;
+}
+.sheet-q {
+  font-size: 32rpx;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 18rpx 0 26rpx;
+}
+.opt {
+  padding: 26rpx 24rpx;
+  border: 1px solid rgba(107, 25, 23, 0.16);
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #4E3A31;
+  margin-bottom: 14rpx;
+}
+.opt.pick {
+  border-color: var(--cinnabar);
+  background: rgba(192, 55, 46, 0.07);
+  color: var(--deep);
+}
+.sheet-res {
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: var(--jade);
+  margin: 8rpx 0 20rpx;
+}

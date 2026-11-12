@@ -1,0 +1,29 @@
+<view class="game-page">
+  <view class="hud">
+    <view class="hud-left">
+      <text class="hud-label">剩余</text>
+      <text class="hud-clock">{{left}} 秒</text>
+    </view>
+    <view class="hud-right">
+      <view class="hud-score">{{score}}</view>
+      <view class="hud-best">最高 {{best}}</view>
+    </view>
+  </view>
+  <view class="timebar"><view class="timebar-fill" style="width:{{leftPct}}%"></view></view>
+
+  <view class="stage-wrap">
+    <canvas type="2d" id="stage" class="stage" bindtouchstart="onTouch"></canvas>
+    <view class="hint">点一下接住 · 鞭炮别碰</view>
+  </view>
+
+  <view class="over-mask" wx:if="{{over}}">
+    <view class="over-card">
+      <view class="over-label">这一局</view>
+      <view class="over-score">{{score}}<text class="over-unit">分</text></view>
+      <view class="over-gain">福气 +{{fqiGain}}，已经存进小羊的口粮</view>
+      <button class="btn-main" bindtap="watchAd" disabled="{{doubleUsed}}">{{doubleUsed ? '福气已翻倍' : '看广告 · 福气翻倍'}}</button>
+      <button class="btn-line" bindtap="again">再来一局</button>
+      <view class="over-back" bindtap="goHome">回集福册</view>
+    </view>
+  </view>
+</view>

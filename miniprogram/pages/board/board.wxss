@@ -1,0 +1,117 @@
+.tabs {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  padding: 6rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(107, 25, 23, 0.1);
+  border-radius: 12rpx;
+}
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  font-size: 28rpx;
+  color: var(--muted);
+  border-radius: 9rpx;
+}
+.tab.on {
+  background: var(--cinnabar);
+  color: #FFF6E4;
+  font-weight: 600;
+}
+
+.mystat {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 28rpx;
+  padding: 0 4rpx;
+}
+.my-rank {
+  font-family: "KaiTi", "STKaiti", serif;
+  font-size: 36rpx;
+  color: var(--deep);
+  letter-spacing: 2rpx;
+}
+.my-total {
+  font-size: 22rpx;
+  color: var(--muted);
+}
+.my-score {
+  font-size: 24rpx;
+  color: var(--muted);
+}
+
+.list {
+  position: relative;
+  z-index: 1;
+  margin-top: 20rpx;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(107, 25, 23, 0.1);
+  border-radius: 16rpx;
+  padding: 8rpx 20rpx;
+}
+.row {
+  display: flex;
+  align-items: center;
+  padding: 22rpx 8rpx;
+  border-bottom: 1px solid rgba(107, 25, 23, 0.07);
+}
+.row:last-child {
+  border-bottom: 0;
+}
+.row.me {
+  background: rgba(192, 55, 46, 0.06);
+  border-radius: 10rpx;
+}
+.rank {
+  width: 60rpx;
+  font-family: "KaiTi", "STKaiti", serif;
+  font-size: 30rpx;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+.who {
+  flex: 1;
+  min-width: 0;
+  font-size: 29rpx;
+  color: #4E3A31;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.pts {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--deep);
+  flex: 0 0 auto;
+}
+.row.me .rank,
+.row.me .who,
+.row.me .pts {
+  color: var(--cinnabar);
+}
+
+.go {
+  position: relative;
+  z-index: 1;
+  margin-top: 34rpx;
+}
+.share {
+  position: relative;
+  z-index: 1;
+  margin-top: 16rpx;
+}
+.foot-tip {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  font-size: 20rpx;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-top: 26rpx;
+  padding: 0 20rpx;
+}

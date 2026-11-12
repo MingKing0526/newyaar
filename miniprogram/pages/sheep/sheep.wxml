@@ -1,0 +1,53 @@
+<view class="page">
+  <view class="head-row">
+    <text class="year-mark">福气小羊</text>
+    <text class="head-date">连续 {{sheep.streak}} 天</text>
+  </view>
+  <view class="hair-line"></view>
+
+  <view class="showcase">
+    <image class="big-sheep mood-{{sheep.mood}}" src="/assets/goat.png" mode="aspectFit" />
+    <view class="level">第 {{sheep.level}} 阶 · {{sheep.levelName}}</view>
+    <view class="saying">{{sheep.tip}}</view>
+  </view>
+
+  <view class="stat-row">
+    <view class="stat">
+      <view class="stat-num">{{sheep.fqi}}</view>
+      <view class="stat-label">福气</view>
+    </view>
+    <view class="stat">
+      <view class="stat-num">{{sheep.totalTouch}}</view>
+      <view class="stat-label">摸头次数</view>
+    </view>
+    <view class="stat">
+      <view class="stat-num">{{sheep.totalFeed}}</view>
+      <view class="stat-label">喂养次数</view>
+    </view>
+    <view class="stat">
+      <view class="stat-num">{{cards}}</view>
+      <view class="stat-label">福卡</view>
+    </view>
+  </view>
+
+  <view class="ops">
+    <button class="btn-main" bindtap="touchSheep" disabled="{{!sheep.canTouch}}">{{sheep.canTouch ? '摸一摸 · 福气 +1' : '今天摸过了'}}</button>
+    <button class="btn-line feed" bindtap="feedSheep" disabled="{{!sheep.canFeed}}">{{sheep.canFeed ? '喂一次 · 花 ' + sheep.feedCost + ' 福气' : (sheep.fqi < sheep.feedCost ? '福气不够，去接福攒' : '今天喂过了')}}</button>
+  </view>
+
+  <view class="section">
+    <view class="section-head">
+      <text class="section-title">它的成长</text>
+      <text class="section-note">每喂 2 次升一阶</text>
+    </view>
+    <view class="ach">
+      <view class="ach-item {{item.done ? 'done' : ''}}" wx:for="{{ach}}" wx:key="name">
+        <view class="ach-dot"></view>
+        <text class="ach-name">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <button class="btn-line go-game" bindtap="goGame">去接福攒福气</button>
+  <view class="foot-tip">小羊的等级与状态存在本机，接后端后可跨设备同步</view>
+</view>

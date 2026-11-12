@@ -1,0 +1,23 @@
+<view class="page">
+  <view class="tabs">
+    <view class="tab {{type === 'class' ? 'on' : ''}}" data-type="class" bindtap="switchTab">班级榜</view>
+    <view class="tab {{type === 'family' ? 'on' : ''}}" data-type="family" bindtap="switchTab">家族榜</view>
+  </view>
+
+  <view class="mystat">
+    <view class="my-rank">第 {{myRank}} 名<text class="my-total"> / 共 {{total}} 人</text></view>
+    <view class="my-score">我的最高 {{best}} 分</view>
+  </view>
+
+  <view class="list">
+    <view class="row {{item.me ? 'me' : ''}}" wx:for="{{rows}}" wx:key="name">
+      <text class="rank">{{item.rank}}</text>
+      <text class="who">{{item.name}}{{item.me ? '（我）' : ''}}</text>
+      <text class="pts">{{item.score}}</text>
+    </view>
+  </view>
+
+  <button class="btn-main go" bindtap="goGame">我还没接，去接福</button>
+  <button class="btn-line share" open-type="share">发给群里比比</button>
+  <view class="foot-tip">演示数据：接后端后按「班级 ID / 家族群 ID」分组拉取真实榜单</view>
+</view>

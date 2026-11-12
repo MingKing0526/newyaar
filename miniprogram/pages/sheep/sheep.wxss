@@ -1,0 +1,114 @@
+.showcase {
+  position: relative;
+  z-index: 1;
+  margin-top: 30rpx;
+  padding: 40rpx 0 30rpx;
+  text-align: center;
+  background: radial-gradient(circle at 50% 30%, rgba(201, 154, 61, 0.16), rgba(201, 154, 61, 0) 70%);
+}
+.big-sheep {
+  width: 320rpx;
+  height: 320rpx;
+}
+.big-sheep.mood-hungry {
+  opacity: 0.8;
+}
+.big-sheep.mood-happy {
+  transform: scale(1.05);
+}
+.level {
+  font-family: "KaiTi", "STKaiti", serif;
+  font-size: 36rpx;
+  color: var(--deep);
+  letter-spacing: 3rpx;
+  margin-top: 12rpx;
+}
+.saying {
+  font-size: 26rpx;
+  color: #4E3A31;
+  margin-top: 10rpx;
+}
+
+.stat-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  margin-top: 24rpx;
+  padding: 24rpx 0;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(107, 25, 23, 0.1);
+  border-radius: 16rpx;
+}
+.stat {
+  flex: 1;
+  text-align: center;
+}
+.stat-num {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--cinnabar);
+}
+.stat-label {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-top: 6rpx;
+}
+
+.ops {
+  position: relative;
+  z-index: 1;
+  margin-top: 26rpx;
+}
+.feed {
+  margin-top: 16rpx;
+}
+
+.ach {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(107, 25, 23, 0.1);
+  border-radius: 16rpx;
+  padding: 8rpx 24rpx;
+}
+.ach-item {
+  display: flex;
+  align-items: center;
+  padding: 18rpx 0;
+  border-bottom: 1px solid rgba(107, 25, 23, 0.06);
+}
+.ach-item:last-child {
+  border-bottom: 0;
+}
+.ach-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: rgba(107, 25, 23, 0.2);
+  margin-right: 16rpx;
+  flex: 0 0 auto;
+}
+.ach-item.done .ach-dot {
+  background: var(--cinnabar);
+}
+.ach-name {
+  font-size: 27rpx;
+  color: rgba(74, 50, 40, 0.55);
+}
+.ach-item.done .ach-name {
+  color: var(--deep);
+}
+
+.go-game {
+  position: relative;
+  z-index: 1;
+  margin-top: 30rpx;
+}
+.foot-tip {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  font-size: 20rpx;
+  color: var(--muted);
+  margin-top: 26rpx;
+}

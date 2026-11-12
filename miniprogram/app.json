@@ -1,0 +1,18 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/game/game",
+    "pages/sheep/sheep",
+    "pages/board/board"
+  ],
+  "window": {
+    "navigationBarTitleText": "羊年集福册",
+    "navigationBarBackgroundColor": "#FBF4E6",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#FBF4E6",
+    "backgroundTextStyle": "dark"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

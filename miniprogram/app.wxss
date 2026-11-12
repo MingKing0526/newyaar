@@ -1,0 +1,149 @@
+/* 全局样式：宣纸底 + 朱砂 / 藤黄 / 青瓷绿三色，克制的纸感，不做渐变堆叠 */
+page {
+  --paper: #FBF4E6;
+  --paper2: #F3E7D0;
+  --cinnabar: #C0372E;
+  --deep: #6B1917;
+  --gold: #C99A3D;
+  --jade: #2C6B58;
+  --ink: #241A16;
+  --muted: #8B7965;
+  --line: rgba(107, 25, 23, 0.16);
+  background: #FBF4E6;
+  color: #241A16;
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 24rpx 28rpx 40rpx;
+  box-sizing: border-box;
+  /* 极淡斜纹纸感，直接铺在容器背景上，不用遮罩层压住内容 */
+  background-image: repeating-linear-gradient(
+    93deg,
+    rgba(107, 25, 23, 0.022) 0,
+    rgba(107, 25, 23, 0.022) 1px,
+    transparent 1px,
+    transparent 6px
+  );
+}
+
+.head-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+.year-mark {
+  font-family: "KaiTi", "STKaiti", serif;
+  font-size: 30rpx;
+  color: var(--cinnabar);
+  letter-spacing: 4rpx;
+}
+.head-date {
+  font-size: 22rpx;
+  color: var(--muted);
+  letter-spacing: 2rpx;
+}
+.hair-line {
+  height: 1px;
+  background: var(--line);
+  margin-top: 16rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.section {
+  position: relative;
+  z-index: 1;
+  margin-top: 32rpx;
+}
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+.section-title {
+  font-family: "KaiTi", "STKaiti", serif;
+  font-size: 34rpx;
+  color: var(--deep);
+  letter-spacing: 3rpx;
+}
+.section-note {
+  font-size: 22rpx;
+  color: var(--muted);
+}
+
+.btn-main {
+  width: 100%;
+  background: var(--cinnabar);
+  color: #FFF6E4;
+  font-size: 32rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  border-radius: 12rpx;
+  padding: 26rpx 0;
+  line-height: 1.2;
+  text-align: center;
+  box-shadow: 0 6rpx 0 #8C2620;
+  border: 0;
+}
+.btn-main::after {
+  border: 0;
+}
+.btn-main[disabled] {
+  background: #C9BBA8;
+  color: #FBF4E6;
+  box-shadow: 0 6rpx 0 #B3A492;
+}
+
+.btn-line {
+  width: 100%;
+  background: transparent;
+  color: var(--deep);
+  font-size: 30rpx;
+  border: 1px solid var(--line);
+  border-radius: 12rpx;
+  padding: 24rpx 0;
+  line-height: 1.2;
+  text-align: center;
+}
+.btn-line::after {
+  border: 0;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 20rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
+  color: #7A5520;
+  background: rgba(201, 154, 61, 0.12);
+  border: 1px solid rgba(201, 154, 61, 0.7);
+}
+.tag-red {
+  color: var(--cinnabar);
+  background: rgba(192, 55, 46, 0.08);
+  border-color: rgba(192, 55, 46, 0.6);
+}
+
+.mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(40, 15, 14, 0.72);
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+}
+.sheet {
+  width: 100%;
+  background: var(--paper);
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 40rpx 36rpx calc(40rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
