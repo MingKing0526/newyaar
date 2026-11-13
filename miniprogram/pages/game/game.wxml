@@ -1,29 +1,134 @@
+<!-- 金羊出圈 · 五关推羊 -->
 <view class="game-page">
-  <view class="hud">
-    <view class="hud-left">
-      <text class="hud-label">剩余</text>
-      <text class="hud-clock">{{left}} 秒</text>
+
+  <!-- ===== 关卡视图 ===== -->
+  <block wx:if="{{view === 'play'}}">
+    <view class="hud">
+      <view class="hud-l">
+        <view class="hud-k">第 {{idx}} 关 / 5</view>
+        <view class="hud-n">{{name}}</view>
+      </view>
+      <view class="hud-r">
+        <view class="dots">
+          <view class="dot {{item.cls}}" wx:for="{{dots}}" wx:key="i"></view>
+        </view>
+        <view class="steps {{low ? 'low' : ''}}">步数 <text class="b">{{used}}</text>/{{budget}}</view>
+      </view>
     </view>
-    <view class="hud-right">
-      <view class="hud-score">{{score}}</view>
-      <view class="hud-best">最高 {{best}}</view>
+
+    <view class="board-wrap">
+      <view class="board" style="width:{{board}}rpx;height:{{board}}rpx">
+        <view class="gate" style="left:{{gateBox.l}}rpx;top:{{gateBox.t}}rpx;width:{{gateBox.s}}rpx;height:{{gateBox.s}}rpx"></view>
+
+        <view class="rock" wx:for="{{rocks}}" wx:key="k"
+              style="left:{{item.l}}rpx;top:{{item.t}}rpx;width:{{item.s}}rpx;height:{{item.s}}rpx"></view>
+
+        <view class="tok sheep {{item.k === bumpK ? 'bump' : ''}}" wx:for="{{sheep}}" wx:key="k"
+              data-k="{{item.k}}" bindtap="tapSheep"
+              style="left:{{item.l}}rpx;top:{{item.t}}rpx;width:{{item.s}}rpx;height:{{item.s}}rpx">
+          <view class="s-body"></view>
+          <view class="s-head"></view>
+          <view class="s-ear e1"></view>
+          <view class="s-ear e2"></view>
+          <view class="s-eye e3"></view>
+          <view class="s-eye e4"></view>
+          <view class="s-leg l1"></view>
+          <view class="s-leg l2"></view>
+          <view class="arw {{item.d}}"></view>
+        </view>
+
+        <view class="tok gold {{goldBump ? 'bump' : ''}}"
+              style="left:{{gold.l}}rpx;top:{{gold.t}}rpx;width:{{gold.s}}rpx;height:{{gold.s}}rpx;opacity:{{gold.fade ? 0 : 1}}">
+          <view class="halo"></view>
+          <view class="s-body"></view>
+          <view class="s-head"></view>
+          <view class="s-ear e1"></view>
+          <view class="s-ear e2"></view>
+          <view class="crown"></view>
+          <view class="bell"></view>
+          <view class="s-leg l1"></view>
+          <view class="s-leg l2"></view>
+        </view>
+
+        <view class="tok wolf" wx:if="{{wolf}}"
+              style="left:{{wolf.l}}rpx;top:{{wolf.t}}rpx;width:{{wolf.s}}rpx;height:{{wolf.s}}rpx">
+          <view class="w-body"></view>
+          <view class="w-head"></view>
+          <view class="w-ear a"></view>
+          <view class="w-ear b"></view>
+          <view class="w-eye x"></view>
+          <view class="w-eye y"></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="min-note">本关最少 {{min}} 步 · 你只有 {{budget}} 步 · 这一盘 {{uidTag}}</view>
+
+    <view class="pad">
+      <view class="pad-btn up" data-d="U" bindtap="padTap"><view class="tri up"></view></view>
+      <view class="pad-btn left" data-d="L" bindtap="padTap"><view class="tri left"></view></view>
+      <view class="pad-mid"><view class="pad-mid-t"><view>赶</view><view>金羊</view></view></view>
+      <view class="pad-btn right" data-d="R" bindtap="padTap"><view class="tri right"></view></view>
+      <view class="pad-btn down" data-d="D" bindtap="padTap"><view class="tri down"></view></view>
+    </view>
+
+    <view class="foot">
+      <button class="foot-btn" bindtap="again">重来本日</button>
+      <button class="foot-btn" bindtap="backHome">回首页</button>
+    </view>
+  </block>
+
+  <!-- ===== 金羊进省圈 ===== -->
+  <block wx:if="{{view === 'scene'}}">
+    <view class="scene">
+      <view class="scene-k">初一 · 五道门全过</view>
+      <view class="scene-t">金羊走进了{{penName}}的羊圈</view>
+
+      <view class="pen">
+        <view class="flock">
+          <view class="mini" wx:for="{{flock}}" wx:key="k">
+            <view class="s-body {{item.gold ? 'gold-body' : ''}}"></view>
+            <view class="s-head {{item.gold ? 'gold-body' : ''}}"></view>
+          </view>
+        </view>
+        <view class="gold-in {{goldIn ? 'go' : ''}}">
+          <view class="s-body"></view>
+          <view class="s-head"></view>
+          <view class="crown"></view>
+        </view>
+        <view class="spark" wx:for="{{sparks}}" wx:key="k"
+              style="left:{{item.x}}%;top:{{item.y}}%;background:{{item.c}};
+                     transform:translate({{item.dx}}vw,{{item.dy}}vw);opacity:{{boom ? 0 : 1}};
+                     transition-delay:{{item.dl}}s"></view>
+      </view>
+
+      <view class="fw">今夜{{penName}}烟花 <text class="fw-n">{{fwShow}}</text> 支</view>
+      <view class="fw-s">这一支记在你名下 · 20:00 全省同放</view>
+
+      <button class="btn-line scene-btn" bindtap="again">再赶一遍</button>
+      <view class="back" bindtap="backHome">回首页</view>
+    </view>
+  </block>
+
+  <!-- ===== 失败卡 ===== -->
+  <view class="mask" wx:if="{{card === 'fail'}}">
+    <view class="sheet">
+      <view class="sheet-t">{{cardTitle}}</view>
+      <view class="sheet-b">{{cardBody}}</view>
+      <view class="sheet-s">{{cardSteps}}</view>
+      <button class="btn-main" bindtap="watchAd" wx:if="{{!adUsed}}">看广告 · 步数 +3</button>
+      <view class="ad-off" wx:else>本关的广告补给已经用掉了</view>
+      <button class="btn-line" bindtap="again">从第一关重来</button>
     </view>
   </view>
-  <view class="timebar"><view class="timebar-fill" style="width:{{leftPct}}%"></view></view>
 
-  <view class="stage-wrap">
-    <canvas type="2d" id="stage" class="stage" bindtouchstart="onTouch"></canvas>
-    <view class="hint">点一下接住 · 鞭炮别碰</view>
-  </view>
-
-  <view class="over-mask" wx:if="{{over}}">
-    <view class="over-card">
-      <view class="over-label">这一局</view>
-      <view class="over-score">{{score}}<text class="over-unit">分</text></view>
-      <view class="over-gain">福气 +{{fqiGain}}，已经存进小羊的口粮</view>
-      <button class="btn-main" bindtap="watchAd" disabled="{{doubleUsed}}">{{doubleUsed ? '福气已翻倍' : '看广告 · 福气翻倍'}}</button>
-      <button class="btn-line" bindtap="again">再来一局</button>
-      <view class="over-back" bindtap="goHome">回集福册</view>
+  <!-- ===== 过关卡（自动进入下一关） ===== -->
+  <view class="pass" wx:if="{{card === 'pass'}}" bindtap="nextLevel">
+    <view class="pass-card">
+      <view class="pass-t">{{cardTitle}}</view>
+      <view class="pass-b">{{cardBody}}</view>
+      <view class="pass-s">{{cardSteps}}</view>
+      <view class="pass-n">进第 {{idx + 1}} 关 …</view>
     </view>
   </view>
 </view>

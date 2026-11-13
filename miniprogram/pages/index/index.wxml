@@ -41,7 +41,7 @@
     <view class="quiz-act">{{quiz.done ? '已完成' : '去答'}}</view>
   </view>
 
-  <button class="btn-main go-game" bindtap="goGame">去接福 · 攒福气</button>
+  <button class="btn-main go-game" bindtap="goGame">去赶金羊 · 走完五道门</button>
 
   <view class="board-row">
     <view class="board-entry" data-type="class" bindtap="goBoard">
