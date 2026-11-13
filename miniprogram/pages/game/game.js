@@ -7,7 +7,9 @@
 const store = require('../../utils/store');
 const { POOL } = require('../../data/levels');
 
-const BOARD = 580;        // 棋盘边长（rpx），保证小屏也能一屏看到键盘
+const BOARD = 580;        // 7×7 及以下的棋盘边长（rpx）
+const BOARD_BIG = 620;    // 8×8 用大一点的格，保证手指点得着
+const boardOf = (n) => (n >= 8 ? BOARD_BIG : BOARD);
 const DV = { U: [-1, 0], D: [1, 0], L: [0, -1], R: [0, 1] };
 const PROV = '广东';
 const DAY_FW = 3;         // 演示：广东当夜已有的烟花数
@@ -104,7 +106,8 @@ Page({
   loadLevel(i) {
     const L = this.LEVELS[i];
     const n = L.n;
-    const cell = BOARD / n;
+    const B = boardOf(n);
+    const cell = B / n;
     const pad = (v) => v * cell;
 
     this.idx = i;
@@ -131,7 +134,7 @@ Page({
       used: 0,
       low: false,
       cell: cell,
-      board: BOARD,
+      board: B,
       rocks: rocks,
       gateBox: { l: pad(this.GATE[1]), t: pad(this.GATE[0]), s: cell },
       wolf: null,
