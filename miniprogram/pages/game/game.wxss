@@ -264,6 +264,11 @@
   pointer-events: none;
   transition: left 0.6s cubic-bezier(0.3, 0.85, 0.3, 1), top 0.6s cubic-bezier(0.3, 0.85, 0.3, 1);
 }
+.tok.wolf.hunter {
+  opacity: 0.92;
+  transform: scale(0.86);
+  transition: left 0.45s ease-out, top 0.45s ease-out;
+}
 .w-body {
   position: absolute;
   left: 2%;

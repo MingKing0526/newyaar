@@ -49,7 +49,8 @@ function pickLevels(uid) {
       budget: L.m + (t === 0 ? 1 : 0),
       gold: L.c,
       rocks: L.r,
-      sheep: L.s
+      sheep: L.s,
+      wolf: L.w || null
     };
   });
 }
@@ -73,6 +74,8 @@ Page({
     gateBox: { l: 0, t: 0, s: 0 },
     bumpK: -1,
     goldBump: false,
+    hunter: null,
+    hasWolf: false,
     wolf: null,
     card: '',
     cardTitle: '',
@@ -120,6 +123,7 @@ Page({
     this.budget = L.budget;
     this.adUsed = false;
     this.mode = 'play';
+    this.hunter = L.wolf ? { r: L.wolf[0], c: L.wolf[1] } : null;
 
     const rocks = this.rocks.map((o, k) => ({
       k: k, l: pad(o.c), t: pad(o.r), s: cell
@@ -138,6 +142,8 @@ Page({
       rocks: rocks,
       gateBox: { l: pad(this.GATE[1]), t: pad(this.GATE[0]), s: cell },
       wolf: null,
+      hunter: this.hunter ? { l: this.hunter.c * cell, t: this.hunter.r * cell, s: cell } : null,
+      hasWolf: !!this.hunter,
       card: '',
       boom: false,
       sparks: [],
@@ -198,7 +204,58 @@ Page({
       used: this.used,
       low: this.budget - this.used <= 1
     });
+    this.tickWolf();
     this.checkEnd();
+  },
+
+  /* 狼每 5 步朝金羊逼近一格（绕石头，不进门口） */
+  wolfNext(from, to) {
+    const n = this.N;
+    const key = (o) => o.r + ',' + o.c;
+    if (from.r === to.r && from.c === to.c) return from;
+    const seen = { [key(from)]: true };
+    const back = {};
+    const q = [{ r: from.r, c: from.c }];
+    let reach = null;
+    for (let h = 0; h < q.length && !reach; h++) {
+      const cur = q[h];
+      for (const k in DV) {
+        const v = DV[k];
+        const t = { r: cur.r + v[0], c: cur.c + v[1] };
+        const kk = key(t);
+        if (t.r < 0 || t.r >= n || t.c < 0 || t.c >= n || seen[kk]) continue;
+        if (t.r === this.GATE[0] && t.c === this.GATE[1]) continue;
+        if (this.rocks.some((o) => o.r === t.r && o.c === t.c)) continue;
+        seen[kk] = true;
+        back[kk] = cur;
+        if (t.r === to.r && t.c === to.c) {
+          reach = t;
+          break;
+        }
+        q.push(t);
+      }
+    }
+    if (!reach) return from;
+    // 从终点回退到“贴着狼的那一格”
+    let cur = reach;
+    while (back[key(cur)] && !(back[key(cur)].r === from.r && back[key(cur)].c === from.c)) {
+      cur = back[key(cur)];
+    }
+    if (!back[key(cur)]) return from;
+    return cur;
+  },
+
+  tickWolf() {
+    if (!this.hunter || this.mode !== 'play') return;
+    if (this.used % 5 !== 0) return;
+    const nxt = this.wolfNext(this.hunter, { r: this.gold.r, c: this.gold.c });
+    this.hunter = nxt;
+    this.setData({ hunter: { l: nxt.c * this.data.cell, t: nxt.r * this.data.cell, s: this.data.cell } });
+    if (nxt.r === this.gold.r && nxt.c === this.gold.c) {
+      this.fail('狼追上金羊了');
+      return;
+    }
+    wx.vibrateShort({ type: 'medium' });
   },
 
   bump(k) {
@@ -236,6 +293,7 @@ Page({
       this.win();
       return;
     }
+    this.tickWolf();
     this.checkEnd();
   },
 

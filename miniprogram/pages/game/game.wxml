@@ -50,6 +50,17 @@
           <view class="s-leg l2"></view>
         </view>
 
+        <!-- 巡回的狼：每 5 步朝金羊逼近一格 -->
+        <view class="tok wolf hunter" wx:if="{{hunter}}"
+              style="left:{{hunter.l}}rpx;top:{{hunter.t}}rpx;width:{{hunter.s}}rpx;height:{{hunter.s}}rpx">
+          <view class="w-body"></view>
+          <view class="w-head"></view>
+          <view class="w-ear a"></view>
+          <view class="w-ear b"></view>
+          <view class="w-eye x"></view>
+          <view class="w-eye y"></view>
+        </view>
+
         <view class="tok wolf" wx:if="{{wolf}}"
               style="left:{{wolf.l}}rpx;top:{{wolf.t}}rpx;width:{{wolf.s}}rpx;height:{{wolf.s}}rpx">
           <view class="w-body"></view>
@@ -62,7 +73,7 @@
       </view>
     </view>
 
-    <view class="min-note">本关最少 {{min}} 步 · 你只有 {{budget}} 步 · 这一盘 {{uidTag}}</view>
+    <view class="min-note">{{hasWolf ? '狼在山那头，每 5 步逼近一格 · ' : ''}}本关最少 {{min}} 步 · 你只有 {{budget}} 步 · 这一盘 {{uidTag}}</view>
 
     <view class="pad">
       <view class="pad-btn up" data-d="U" bindtap="padTap"><view class="tri up"></view></view>
