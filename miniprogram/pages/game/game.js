@@ -13,6 +13,7 @@ const boardOf = (n) => (n >= 8 ? BOARD_BIG : BOARD);
 const DV = { U: [-1, 0], D: [1, 0], L: [0, -1], R: [0, 1] };
 const PROV = '广东';
 const DAY_FW = 3;         // 演示：广东当夜已有的烟花数
+const WOLF_EVERY = 4;     // 第五关：狼每走 4 步就逼近金羊一格
 
 /* 选关：设备唯一 ID + 关号 → 哈希 → 池内某一关 */
 function loadUid() {
@@ -247,7 +248,7 @@ Page({
 
   tickWolf() {
     if (!this.hunter || this.mode !== 'play') return;
-    if (this.used % 5 !== 0) return;
+    if (this.used % WOLF_EVERY !== 0) return;
     const nxt = this.wolfNext(this.hunter, { r: this.gold.r, c: this.gold.c });
     this.hunter = nxt;
     this.setData({ hunter: { l: nxt.c * this.data.cell, t: nxt.r * this.data.cell, s: this.data.cell } });

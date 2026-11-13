@@ -73,7 +73,7 @@
       </view>
     </view>
 
-    <view class="min-note">{{hasWolf ? '狼在山那头，每 5 步逼近一格 · ' : ''}}本关最少 {{min}} 步 · 你只有 {{budget}} 步 · 这一盘 {{uidTag}}</view>
+    <view class="min-note">{{hasWolf ? '狼在山那头，每 4 步逼近一格 · ' : ''}}本关最少 {{min}} 步 · 你只有 {{budget}} 步 · 这一盘 {{uidTag}}</view>
 
     <view class="pad">
       <view class="pad-btn up" data-d="U" bindtap="padTap"><view class="tri up"></view></view>
