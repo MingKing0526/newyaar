@@ -337,11 +337,11 @@
 
 /* ===== 方向键 ===== */
 .pad {
-  width: 620rpx;
-  margin: 16rpx auto 0;
+  width: 580rpx;
+  margin: 14rpx auto 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 106rpx);
+  grid-template-rows: repeat(3, 96rpx);
   gap: 10rpx;
 }
 .pad-btn {

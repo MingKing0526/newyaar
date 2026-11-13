@@ -7,7 +7,7 @@
 const store = require('../../utils/store');
 const { POOL } = require('../../data/levels');
 
-const BOARD = 620;        // 棋盘边长（rpx）
+const BOARD = 580;        // 棋盘边长（rpx），保证小屏也能一屏看到键盘
 const DV = { U: [-1, 0], D: [1, 0], L: [0, -1], R: [0, 1] };
 const PROV = '广东';
 const DAY_FW = 3;         // 演示：广东当夜已有的烟花数
