@@ -1,7 +1,7 @@
 /**
- * 金羊出圈 · 五关推羊（小程序版）
- * 一日的五关串成一条线：第 1 关出门 → 第 2 关 … → 第 5 关，全过才为省份 +1 支烟花
- * 关卡不手摆：data/levels.js 里 46 关都经 BFS 求解器验证过最少步数
+ * 金羊出圈 · 一天三十关（小程序版）
+ * 六组 × 五档难度串成一条线：一天 30 关，走完一组为省份 +1 支烟花，六组走完共 6 支
+ * 关卡不手摆：data/levels.js 里每关都经 BFS 求解器验证过最少步数
  * 每个设备按唯一 ID 哈希取关，重开还是同一盘
  */
 const store = require('../../utils/store');
@@ -13,7 +13,10 @@ const boardOf = (n) => (n >= 8 ? BOARD_BIG : BOARD);
 const DV = { U: [-1, 0], D: [1, 0], L: [0, -1], R: [0, 1] };
 const PROV = '广东';
 const DAY_FW = 3;         // 演示：广东当夜已有的烟花数
-const WOLF_EVERY = 4;     // 第五关：狼每走 4 步就逼近金羊一格
+const WOLF_EVERY = 3;     // 第五档：狼每走 3 步就逼近金羊一格
+const TIERS = 5;          // 每组五档难度
+const ROUNDS = 6;         // 一天六组
+const TOTAL = TIERS * ROUNDS;   // 一天 30 关
 
 /* 选关：设备唯一 ID + 关号 → 哈希 → 池内某一关 */
 function loadUid() {
@@ -34,33 +37,48 @@ function h32(s) {
 }
 function pickLevels(uid) {
   const pools = POOL.filter((a) => a && a.length);
-  let saved = wx.getStorageSync('jy_pick_v1');
-  if (!saved || !saved.uid || saved.uid !== uid || !saved.picks
-      || saved.picks.length !== pools.length) {
-    saved = { uid: uid, picks: pools.map((arr, t) => h32(uid + '#' + t) % arr.length) };
-    wx.setStorageSync('jy_pick_v1', saved);
+  const tierOf = (t) => pools[t] || pools[pools.length - 1];
+  const need = TOTAL;
+  let saved = wx.getStorageSync('jy_pick_v3');
+  if (!saved || !saved.uid || saved.uid !== uid || !saved.picks || saved.picks.length !== need) {
+    const picks = [];
+    for (let r = 0; r < ROUNDS; r++) {
+      for (let t = 0; t < TIERS; t++) {
+        picks.push(h32(uid + '#r' + r + 't' + t) % tierOf(t).length);
+      }
+    }
+    saved = { uid: uid, picks: picks };
+    wx.setStorageSync('jy_pick_v3', saved);
   }
-  return pools.map((arr, t) => {
-    const L = arr[saved.picks[t] % arr.length];
-    return {
-      name: L.nm,
-      n: L.n,
-      gate: L.g,
-      min: L.m,
-      budget: L.m + (t === 0 ? 1 : 0),
-      gold: L.c,
-      rocks: L.r,
-      sheep: L.s,
-      wolf: L.w || null
-    };
-  });
+  const out = [];
+  for (let r = 0; r < ROUNDS; r++) {
+    for (let t = 0; t < TIERS; t++) {
+      const arr = tierOf(t);
+      const L = arr[saved.picks[r * TIERS + t] % arr.length];
+      out.push({
+        name: L.nm,
+        n: L.n,
+        gate: L.g,
+        min: L.m,
+        budget: L.m + (t === 0 ? 1 : 0),
+        gold: L.c,
+        rocks: L.r,
+        sheep: L.s,
+        wolf: L.w || null,
+        tier: t
+      });
+    }
+  }
+  return out;
 }
 
 Page({
   data: {
     view: 'play',
     idx: 1,
-    idxMax: 5,
+    total: TOTAL,
+    round: 1,
+    rounds: ROUNDS,
     name: '',
     min: 0,
     used: 0,
@@ -101,7 +119,7 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '羊年五道羊圈，我把金羊赶出去了，你试试',
+      title: '羊年三十关，我把金羊赶出去了，你试试',
       path: '/pages/game/game'
     };
   },
@@ -133,6 +151,9 @@ Page({
     this.setData({
       view: 'play',
       idx: i + 1,
+      total: TOTAL,
+      round: Math.floor(i / TIERS) + 1,
+      rounds: ROUNDS,
       name: L.name,
       min: L.min,
       budget: this.budget,
@@ -156,8 +177,9 @@ Page({
 
   dotsOf(cur) {
     const out = [];
-    for (let i = 0; i < 5; i++) {
-      out.push({ i: i, cls: i < cur ? 'on' : (i === cur ? 'now' : '') });
+    const k = cur % TIERS;
+    for (let i = 0; i < TIERS; i++) {
+      out.push({ i: i, cls: i < k ? 'on' : (i === k ? 'now' : '') });
     }
     return out;
   },
@@ -342,7 +364,9 @@ Page({
       this.setData({
         card: 'fail',
         cardTitle: '狼蹲在门口了',
-        cardBody: reason + '，金羊卡在第 ' + (this.idx + 1) + ' 关。这一天得从第一关重新开始。',
+        cardBody: reason + '，金羊卡在第 ' + (this.idx + 1) + ' 关。第 '
+          + (Math.floor(this.idx / TIERS) + 1) + ' 组要从第 '
+          + (this.idx - this.idx % TIERS + 1) + ' 关重来。',
         cardSteps: '本关最少 ' + this.data.min + ' 步 · 你用掉 ' + this.used + ' 步'
       });
     }, 900);
@@ -384,17 +408,23 @@ Page({
     });
 
     setTimeout(() => {
-      if (this.idx >= 4) {
+      if (this.idx >= TOTAL - 1) {
         this.toScene();
         return;
       }
+      const round = Math.floor(this.idx / TIERS) + 1;
+      const endOfRound = this.idx % TIERS === TIERS - 1;
       this.setData({
         card: 'pass',
-        cardTitle: '第 ' + (this.idx + 1) + ' 关 · 出圈',
-        cardBody: '金羊从这道门挤出来了，前面还有 ' + (4 - this.idx) + ' 道门。',
+        cardTitle: endOfRound
+          ? '第 ' + round + ' 组 · 五道门全过'
+          : '第 ' + (this.idx + 1) + ' 关 · 出圈',
+        cardBody: endOfRound
+          ? ('这一组走完了，' + PROV + ' 记下 1 支烟花。接着开第 ' + (round + 1) + ' 组。')
+          : ('金羊从这道门挤出来了，这一组还剩 ' + (TIERS - 1 - (this.idx % TIERS)) + ' 道门。'),
         cardSteps: '你用 ' + this.used + ' 步 · 本关最少 ' + this.data.min + ' 步'
       });
-      this.passTimer = setTimeout(() => this.nextLevel(), 1500);
+      this.passTimer = setTimeout(() => this.nextLevel(), endOfRound ? 2200 : 1500);
     }, 420);
   },
 
@@ -409,14 +439,15 @@ Page({
   /* ============ 金羊进省圈 ============ */
   toScene() {
     this.mode = 'scene';
+    const fw = DAY_FW + ROUNDS;      // 六组各 +1 支
     const flock = [];
-    for (let i = 0; i < DAY_FW; i++) flock.push({ k: 'f' + i, gold: false });
+    for (let i = 0; i < fw; i++) flock.push({ k: 'f' + i, gold: false });
 
     this.setData({
       view: 'scene',
       card: '',
-      fw: DAY_FW,
-      fwShow: DAY_FW,
+      fw: fw,
+      fwShow: fw,
       flock: flock,
       goldIn: false,
       sparks: [],
@@ -427,12 +458,12 @@ Page({
 
     setTimeout(() => {
       const flock2 = flock.concat([{ k: 'gold', gold: true }]);
-      this.setData({ flock: flock2, fwShow: DAY_FW + 1, sparks: this.buildSparks(false) });
+      this.setData({ flock: flock2, fwShow: fw, sparks: this.buildSparks(false) });
       setTimeout(() => this.setData({ boom: true }), 80);
       wx.vibrateShort({ type: 'medium' });
       store.addFqi(2);
       const key = 'jy_clear_' + new Date().toISOString().slice(0, 10);
-      wx.setStorageSync(key, true);
+      wx.setStorageSync(key, 30);
     }, 950);
   },
 
@@ -459,11 +490,18 @@ Page({
     return out;
   },
 
+  /* 失败卡：从本组第一关重来 */
   again() {
     if (this.passTimer) {
       clearTimeout(this.passTimer);
       this.passTimer = 0;
     }
+    const start = this.idx - (this.idx % TIERS);
+    this.loadLevel(start);
+  },
+
+  /* 省圈场景：整天重开 */
+  sceneAgain() {
     this.loadLevel(0);
   },
 
