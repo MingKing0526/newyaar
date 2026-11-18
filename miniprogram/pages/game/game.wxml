@@ -18,13 +18,17 @@
 
     <view class="board-wrap">
       <view class="board" style="width:{{board}}rpx;height:{{board}}rpx">
-        <view class="gate" style="left:{{gateBox.l}}rpx;top:{{gateBox.t}}rpx;width:{{gateBox.s}}rpx;height:{{gateBox.s}}rpx"></view>
+        <view class="gate {{gateOpen ? 'open' : ''}}" style="left:{{gateBox.l}}rpx;top:{{gateBox.t}}rpx;width:{{gateBox.s}}rpx;height:{{gateBox.s}}rpx"></view>
+
+        <view class="goal" wx:for="{{goals}}" wx:key="k"
+              style="left:{{item.l}}rpx;top:{{item.t}}rpx;width:{{item.s}}rpx;height:{{item.s}}rpx">
+          <view class="goal-in"></view>
+        </view>
 
         <view class="rock" wx:for="{{rocks}}" wx:key="k"
               style="left:{{item.l}}rpx;top:{{item.t}}rpx;width:{{item.s}}rpx;height:{{item.s}}rpx"></view>
 
-        <view class="tok sheep {{item.k === bumpK ? 'bump' : ''}}" wx:for="{{sheep}}" wx:key="k"
-              data-k="{{item.k}}" bindtap="tapSheep"
+        <view class="tok sheep {{item.on ? 'in' : ''}}" wx:for="{{sheep}}" wx:key="k"
               style="left:{{item.l}}rpx;top:{{item.t}}rpx;width:{{item.s}}rpx;height:{{item.s}}rpx">
           <view class="s-body"></view>
           <view class="s-head"></view>
@@ -34,7 +38,6 @@
           <view class="s-eye e4"></view>
           <view class="s-leg l1"></view>
           <view class="s-leg l2"></view>
-          <view class="arw {{item.d}}"></view>
         </view>
 
         <view class="tok gold {{goldBump ? 'bump' : ''}}"
@@ -73,17 +76,18 @@
       </view>
     </view>
 
-    <view class="min-note">{{hasWolf ? '狼在山那头，每 3 步逼近一格 · ' : ''}}本关最少 {{min}} 步 · 你只有 {{budget}} 步 · 这一盘 {{uidTag}}</view>
+    <view class="min-note">羊圈 {{filled}}/{{need}} · {{hasWolf ? '狼每 6 步逼近一格 · ' : ''}}最少 {{min}} 步 · 你只有 {{budget}} 步 · {{uidTag}}</view>
 
     <view class="pad">
       <view class="pad-btn up" data-d="U" bindtap="padTap"><view class="tri up"></view></view>
       <view class="pad-btn left" data-d="L" bindtap="padTap"><view class="tri left"></view></view>
-      <view class="pad-mid"><view class="pad-mid-t"><view>赶</view><view>金羊</view></view></view>
+      <view class="pad-mid"><view class="pad-mid-t"><view>推</view><view>羊</view></view></view>
       <view class="pad-btn right" data-d="R" bindtap="padTap"><view class="tri right"></view></view>
       <view class="pad-btn down" data-d="D" bindtap="padTap"><view class="tri down"></view></view>
     </view>
 
     <view class="foot">
+      <button class="foot-btn" bindtap="undo">悔一步 · 剩{{undoLeft}}</button>
       <button class="foot-btn" bindtap="again">本组重来</button>
       <button class="foot-btn" bindtap="backHome">回首页</button>
     </view>
@@ -127,7 +131,7 @@
       <view class="sheet-t">{{cardTitle}}</view>
       <view class="sheet-b">{{cardBody}}</view>
       <view class="sheet-s">{{cardSteps}}</view>
-      <button class="btn-main" bindtap="watchAd" wx:if="{{!adUsed}}">看广告 · 步数 +3</button>
+      <button class="btn-main" bindtap="watchAd" wx:if="{{!adUsed}}">看广告 · 步数 +3 · 悔步 +3</button>
       <view class="ad-off" wx:else>本关的广告补给已经用掉了</view>
       <button class="btn-line" bindtap="again">从本组第一关重来</button>
     </view>

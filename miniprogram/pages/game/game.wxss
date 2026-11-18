@@ -83,9 +83,15 @@
 }
 .gate {
   position: absolute;
-  border: 3rpx dashed rgba(192, 55, 46, 0.55);
+  border: 3rpx dashed rgba(120, 110, 96, 0.5);
   border-radius: 6rpx;
   box-sizing: border-box;
+  background: rgba(120, 110, 96, 0.08);
+}
+.gate.open {
+  border-color: rgba(192, 55, 46, 0.7);
+  background: rgba(230, 193, 92, 0.2);
+  box-shadow: 0 0 0 3rpx rgba(230, 193, 92, 0.35) inset;
 }
 .gate::after {
   content: "门";
@@ -100,6 +106,39 @@
   font-family: "KaiTi", "STKaiti", serif;
   font-size: 22rpx;
   color: rgba(107, 25, 23, 0.62);
+}
+.gate.open::after {
+  content: "开";
+  color: #C0372E;
+}
+
+/* 羊圈：所有羊都推进去，门才开 */
+.goal {
+  position: absolute;
+  box-sizing: border-box;
+  z-index: 2;
+}
+.goal-in {
+  position: absolute;
+  left: 12%;
+  top: 12%;
+  width: 76%;
+  height: 76%;
+  border: 2rpx dashed rgba(122, 94, 40, 0.55);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, rgba(230, 193, 92, 0.28), rgba(230, 193, 92, 0.06));
+  box-sizing: border-box;
+}
+.goal-in::after {
+  content: "";
+  position: absolute;
+  left: 26%;
+  top: 40%;
+  width: 48%;
+  height: 12%;
+  border-radius: 3rpx;
+  background: rgba(150, 120, 52, 0.45);
+  box-shadow: 0 6rpx 0 rgba(150, 120, 52, 0.3);
 }
 .rock {
   position: absolute;
@@ -116,6 +155,12 @@
 }
 .tok.sheep {
   z-index: 5;
+}
+/* 羊已进圈：套一层金边，一眼看清进度 */
+.tok.sheep.in .s-body,
+.tok.sheep.in .s-head {
+  border-color: #8A5C1B;
+  box-shadow: 0 0 0 3rpx rgba(230, 193, 92, 0.55);
 }
 .s-body {
   position: absolute;

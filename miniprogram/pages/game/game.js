@@ -1,24 +1,31 @@
 /**
- * 金羊出圈 · 一天三十关（小程序版）
- * 六组 × 五档难度串成一条线：一天 30 关，走完一组为省份 +1 支烟花，六组走完共 6 支
- * 关卡不手摆：data/levels.js 里每关都经 BFS 求解器验证过最少步数
+ * 金羊出圈 · 一天三十关（推箱子内核）
+ * 规则 = 经典 Sokoban：金羊只能推、不能拉，一次只推一格，羊后面是墙/边/另一只羊就推不动
+ * 目标：把每只羊都推进羊圈，门才开；金羊走进门 = 过关
+ * 推错一步羊卡进墙角，这一局就废了 —— 难度来自死锁，不是来自步数
+ * 一天 6 组 × 5 档 = 30 关，走完一组为省份 +1 支烟花
  * 每个设备按唯一 ID 哈希取关，重开还是同一盘
  */
 const store = require('../../utils/store');
 const { POOL } = require('../../data/levels');
 
-const BOARD = 580;        // 7×7 及以下的棋盘边长（rpx）
-const BOARD_BIG = 620;    // 8×8 用大一点的格，保证手指点得着
-const boardOf = (n) => (n >= 8 ? BOARD_BIG : BOARD);
 const DV = { U: [-1, 0], D: [1, 0], L: [0, -1], R: [0, 1] };
 const PROV = '广东';
 const DAY_FW = 3;         // 演示：广东当夜已有的烟花数
-const WOLF_EVERY = 3;     // 第五档：狼每走 3 步就逼近金羊一格
-const TIERS = 5;          // 每组五档难度
+const WOLF_EVERY = 6;     // 第五档：狼每走 6 步逼近金羊一格
+const TIERS = 5;          // 每组五档
 const ROUNDS = 6;         // 一天六组
 const TOTAL = TIERS * ROUNDS;   // 一天 30 关
+const SLACK = [4, 3, 3, 2, 2];  // 各档在最少步数上多给的余量
+const UNDO_FREE = 3;      // 每关免费悔步次数
 
-/* 选关：设备唯一 ID + 关号 → 哈希 → 池内某一关 */
+function boardOf(n) {
+  if (n >= 9) return 660;
+  if (n >= 8) return 620;
+  return 580;
+}
+
+/* 选关：设备唯一 ID + 组号 + 档位 → 哈希 → 池内某一关 */
 function loadUid() {
   let uid = wx.getStorageSync('jy_uid');
   if (!uid) {
@@ -38,9 +45,8 @@ function h32(s) {
 function pickLevels(uid) {
   const pools = POOL.filter((a) => a && a.length);
   const tierOf = (t) => pools[t] || pools[pools.length - 1];
-  const need = TOTAL;
-  let saved = wx.getStorageSync('jy_pick_v3');
-  if (!saved || !saved.uid || saved.uid !== uid || !saved.picks || saved.picks.length !== need) {
+  let saved = wx.getStorageSync('jy_pick_v4');
+  if (!saved || !saved.uid || saved.uid !== uid || !saved.picks || saved.picks.length !== TOTAL) {
     const picks = [];
     for (let r = 0; r < ROUNDS; r++) {
       for (let t = 0; t < TIERS; t++) {
@@ -48,7 +54,7 @@ function pickLevels(uid) {
       }
     }
     saved = { uid: uid, picks: picks };
-    wx.setStorageSync('jy_pick_v3', saved);
+    wx.setStorageSync('jy_pick_v4', saved);
   }
   const out = [];
   for (let r = 0; r < ROUNDS; r++) {
@@ -60,10 +66,11 @@ function pickLevels(uid) {
         n: L.n,
         gate: L.g,
         min: L.m,
-        budget: L.m + (t === 0 ? 1 : 0),
+        budget: L.m + SLACK[t],
         gold: L.c,
         rocks: L.r,
         sheep: L.s,
+        goals: L.goal,
         wolf: L.w || null,
         tier: t
       });
@@ -85,12 +92,16 @@ Page({
     budget: 0,
     low: false,
     dots: [],
-    board: BOARD,
+    board: 580,
     cell: 0,
     rocks: [],
     sheep: [],
+    goals: [],
+    filled: 0,
+    need: 0,
     gold: { l: 0, t: 0, s: 0 },
     gateBox: { l: 0, t: 0, s: 0 },
+    gateOpen: false,
     bumpK: -1,
     goldBump: false,
     hunter: null,
@@ -101,6 +112,7 @@ Page({
     cardBody: '',
     cardSteps: '',
     adUsed: false,
+    undoLeft: UNDO_FREE,
     penName: PROV,
     fw: DAY_FW,
     fwShow: DAY_FW,
@@ -119,7 +131,7 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '羊年三十关，我把金羊赶出去了，你试试',
+      title: '羊年三十关，我把金羊赶出羊圈了，你试试',
       path: '/pages/game/game'
     };
   },
@@ -137,16 +149,15 @@ Page({
     this.GATE = L.gate;
     this.gold = { r: L.gold[0], c: L.gold[1] };
     this.rocks = L.rocks.map((rc) => ({ r: rc[0], c: rc[1] }));
-    this.sheep = L.sheep.map((s, k) => ({ r: s[0], c: s[1], d: s[2], k: k }));
+    this.goals = L.goals.map((rc) => ({ r: rc[0], c: rc[1] }));
+    this.sheep = L.sheep.map((s, k) => ({ r: s[0], c: s[1], k: k }));
     this.used = 0;
     this.budget = L.budget;
     this.adUsed = false;
+    this.undoLeft = UNDO_FREE;
+    this.hist = [];
     this.mode = 'play';
     this.hunter = L.wolf ? { r: L.wolf[0], c: L.wolf[1] } : null;
-
-    const rocks = this.rocks.map((o, k) => ({
-      k: k, l: pad(o.c), t: pad(o.r), s: cell
-    }));
 
     this.setData({
       view: 'play',
@@ -161,11 +172,16 @@ Page({
       low: false,
       cell: cell,
       board: B,
-      rocks: rocks,
+      rocks: this.rocks.map((o, k) => ({ k: k, l: pad(o.c), t: pad(o.r), s: cell })),
+      goals: this.goals.map((o, k) => ({ k: k, l: pad(o.c), t: pad(o.r), s: cell })),
+      filled: this.countFilled(),
+      need: this.goals.length,
       gateBox: { l: pad(this.GATE[1]), t: pad(this.GATE[0]), s: cell },
+      gateOpen: this.countFilled() === this.goals.length,
       wolf: null,
       hunter: this.hunter ? { l: this.hunter.c * cell, t: this.hunter.r * cell, s: cell } : null,
       hasWolf: !!this.hunter,
+      undoLeft: this.undoLeft,
       card: '',
       boom: false,
       sparks: [],
@@ -185,53 +201,157 @@ Page({
   },
 
   sheepView(cell) {
-    return this.sheep.map((o) => ({
-      k: o.k, d: o.d, l: o.c * cell, t: o.r * cell, s: cell
-    }));
+    return this.sheep.map((o) => {
+      const on = this.goals.some((g) => g.r === o.r && g.c === o.c);
+      return { k: o.k, l: o.c * cell, t: o.r * cell, s: cell, on: on };
+    });
   },
 
-  occupied(r, c, skipGold) {
-    if (!skipGold && this.gold.r === r && this.gold.c === c) return true;
-    for (let i = 0; i < this.rocks.length; i++) {
-      if (this.rocks[i].r === r && this.rocks[i].c === c) return true;
-    }
-    for (let j = 0; j < this.sheep.length; j++) {
-      if (this.sheep[j].r === r && this.sheep[j].c === c) return true;
-    }
-    return false;
+  countFilled() {
+    return this.sheep.filter((o) => this.goals.some((g) => g.r === o.r && g.c === o.c)).length;
   },
 
-  /* 点羊：朝自己的箭头走一格，推不动就抖一下不算步 */
-  tapSheep(e) {
+  inBoard(p) {
+    return p.r >= 0 && p.r < this.N && p.c >= 0 && p.c < this.N;
+  },
+  isRock(p) {
+    return this.rocks.some((o) => o.r === p.r && o.c === p.c);
+  },
+  isGate(p) {
+    return this.GATE[0] === p.r && this.GATE[1] === p.c;
+  },
+  sheepAt(p) {
+    return this.sheep.findIndex((o) => o.r === p.r && o.c === p.c);
+  },
+
+  /* ============ 推箱子 ============ */
+  padTap(e) {
+    this.move(e.currentTarget.dataset.d);
+  },
+
+  move(d) {
     if (this.mode !== 'play') return;
-    const k = e.currentTarget.dataset.k;
-    const sh = this.sheep[k];
-    if (!sh) return;
-    const v = DV[sh.d];
-    const nr = sh.r + v[0];
-    const nc = sh.c + v[1];
-    const blocked = nr < 0 || nr >= this.N || nc < 0 || nc >= this.N
-      || this.occupied(nr, nc)
-      || (nr === this.GATE[0] && nc === this.GATE[1]);
-    if (blocked) {
-      wx.vibrateShort({ type: 'light' });
-      this.bump(k);
+    const v = DV[d];
+    const t = { r: this.gold.r + v[0], c: this.gold.c + v[1] };
+
+    if (!this.inBoard(t) || this.isRock(t)) {
+      this.refuse();
       return;
     }
-    sh.r = nr;
-    sh.c = nc;
+
+    if (this.isGate(t)) {
+      if (this.countFilled() < this.goals.length) {
+        wx.showToast({ title: '羊还没全进圈，门锁着', icon: 'none' });
+        this.refuse();
+        return;
+      }
+      this.step(t, null);
+      this.win();
+      return;
+    }
+
+    const si = this.sheepAt(t);
+    if (si >= 0) {
+      const b = { r: t.r + v[0], c: t.c + v[1] };
+      if (!this.inBoard(b) || this.isRock(b) || this.isGate(b) || this.sheepAt(b) >= 0) {
+        wx.showToast({ title: '这只羊后面顶住了', icon: 'none' });
+        this.refuse();
+        return;
+      }
+      this.pushHist();
+      this.sheep[si].r = b.r;
+      this.sheep[si].c = b.c;
+      this.step(t, si);
+      return;
+    }
+
+    this.pushHist();
+    this.step(t, null);
+  },
+
+  /* 记一步：金羊走到 t，顺便更新羊、羊圈、狼、剩余步 */
+  step(t, pushed) {
+    this.gold = { r: t.r, c: t.c };
     this.used += 1;
-    wx.vibrateShort({ type: 'light' });
+    const filled = this.countFilled();
+    wx.vibrateShort({ type: pushed === null ? 'light' : 'medium' });
     this.setData({
+      gold: { l: t.c * this.data.cell, t: t.r * this.data.cell, s: this.data.cell },
       sheep: this.sheepView(this.data.cell),
+      filled: filled,
+      gateOpen: filled === this.goals.length,
       used: this.used,
       low: this.budget - this.used <= 1
     });
     this.tickWolf();
-    this.checkEnd();
+    if (this.mode === 'play' && this.stuck()) {
+      this.fail('这只羊被推进死角，再也进不了圈');
+      return;
+    }
+    if (this.mode === 'play' && this.used >= this.budget) {
+      this.fail('步子用光了');
+    }
   },
 
-  /* 狼每 5 步朝金羊逼近一格（绕石头，不进门口） */
+  /* 死锁判定：羊卡在墙角（两个垂直方向都是墙/边）且不在圈里，就永远救不回来 */
+  stuck() {
+    for (let i = 0; i < this.sheep.length; i++) {
+      const s = this.sheep[i];
+      if (this.goals.some((g) => g.r === s.r && g.c === s.c)) continue;
+      const blocked = (p) => !this.inBoard(p) || this.isRock(p) || this.isGate(p);
+      const up = blocked({ r: s.r - 1, c: s.c });
+      const dn = blocked({ r: s.r + 1, c: s.c });
+      const lf = blocked({ r: s.r, c: s.c - 1 });
+      const rt = blocked({ r: s.r, c: s.c + 1 });
+      if ((up && lf) || (up && rt) || (dn && lf) || (dn && rt)) return true;
+    }
+    return false;
+  },
+
+  pushHist() {
+    if (!this.hist) this.hist = [];
+    this.hist.push({
+      gold: { r: this.gold.r, c: this.gold.c },
+      sheep: this.sheep.map((o) => ({ r: o.r, c: o.c })),
+      used: this.used,
+      hunter: this.hunter ? { r: this.hunter.r, c: this.hunter.c } : null
+    });
+    if (this.hist.length > 60) this.hist.shift();
+  },
+
+  undo() {
+    if (this.mode !== 'play' || !this.hist || !this.hist.length) return;
+    if (this.undoLeft <= 0) {
+      wx.showToast({ title: '本关悔步用完了', icon: 'none' });
+      return;
+    }
+    const h = this.hist.pop();
+    this.gold = h.gold;
+    this.sheep = h.sheep.map((o, k) => ({ r: o.r, c: o.c, k: k }));
+    this.used = h.used;
+    this.hunter = h.hunter;
+    this.undoLeft -= 1;
+    const filled = this.countFilled();
+    this.setData({
+      gold: { l: this.gold.c * this.data.cell, t: this.gold.r * this.data.cell, s: this.data.cell },
+      sheep: this.sheepView(this.data.cell),
+      filled: filled,
+      gateOpen: filled === this.goals.length,
+      used: this.used,
+      low: this.budget - this.used <= 1,
+      undoLeft: this.undoLeft,
+      hunter: this.hunter ? { l: this.hunter.c * this.data.cell, t: this.hunter.r * this.data.cell, s: this.data.cell } : null
+    });
+    wx.vibrateShort({ type: 'light' });
+  },
+
+  refuse() {
+    wx.vibrateShort({ type: 'light' });
+    this.setData({ goldBump: true });
+    setTimeout(() => this.setData({ goldBump: false }), 240);
+  },
+
+  /* ============ 狼 ============ */
   wolfNext(from, to) {
     const n = this.N;
     const key = (o) => o.r + ',' + o.c;
@@ -247,8 +367,7 @@ Page({
         const t = { r: cur.r + v[0], c: cur.c + v[1] };
         const kk = key(t);
         if (t.r < 0 || t.r >= n || t.c < 0 || t.c >= n || seen[kk]) continue;
-        if (t.r === this.GATE[0] && t.c === this.GATE[1]) continue;
-        if (this.rocks.some((o) => o.r === t.r && o.c === t.c)) continue;
+        if (this.isGate(t) || this.isRock(t) || this.sheepAt(t) >= 0) continue;
         seen[kk] = true;
         back[kk] = cur;
         if (t.r === to.r && t.c === to.c) {
@@ -259,7 +378,6 @@ Page({
       }
     }
     if (!reach) return from;
-    // 从终点回退到“贴着狼的那一格”
     let cur = reach;
     while (back[key(cur)] && !(back[key(cur)].r === from.r && back[key(cur)].c === from.c)) {
       cur = back[key(cur)];
@@ -281,73 +399,7 @@ Page({
     wx.vibrateShort({ type: 'medium' });
   },
 
-  bump(k) {
-    this.setData({ bumpK: k });
-    setTimeout(() => this.setData({ bumpK: -1 }), 260);
-  },
-
-  padTap(e) {
-    this.goldMove(e.currentTarget.dataset.d);
-  },
-
-  goldMove(d) {
-    if (this.mode !== 'play') return;
-    const v = DV[d];
-    const nr = this.gold.r + v[0];
-    const nc = this.gold.c + v[1];
-    const blocked = nr < 0 || nr >= this.N || nc < 0 || nc >= this.N
-      || this.occupied(nr, nc, true);
-    if (blocked) {
-      wx.vibrateShort({ type: 'light' });
-      this.setData({ goldBump: true });
-      setTimeout(() => this.setData({ goldBump: false }), 260);
-      return;
-    }
-    const won = nr === this.GATE[0] && nc === this.GATE[1];
-    this.gold = { r: nr, c: nc };
-    this.used += 1;
-    wx.vibrateShort({ type: 'light' });
-    this.setData({
-      gold: { l: nc * this.data.cell, t: nr * this.data.cell, s: this.data.cell },
-      used: this.used,
-      low: this.budget - this.used <= 1
-    });
-    if (won) {
-      this.win();
-      return;
-    }
-    this.tickWolf();
-    this.checkEnd();
-  },
-
-  anyMove() {
-    const g = this.gold;
-    for (const k in DV) {
-      const v = DV[k];
-      const nr = g.r + v[0];
-      const nc = g.c + v[1];
-      if (nr >= 0 && nr < this.N && nc >= 0 && nc < this.N && !this.occupied(nr, nc, true)) return true;
-    }
-    for (let i = 0; i < this.sheep.length; i++) {
-      const sh = this.sheep[i];
-      const v = DV[sh.d];
-      const nr = sh.r + v[0];
-      const nc = sh.c + v[1];
-      if (nr >= 0 && nr < this.N && nc >= 0 && nc < this.N && !this.occupied(nr, nc)
-          && !(nr === this.GATE[0] && nc === this.GATE[1])) return true;
-    }
-    return false;
-  },
-
-  checkEnd() {
-    if (this.used >= this.budget) {
-      this.fail('步子用光了');
-      return;
-    }
-    if (!this.anyMove()) this.fail('羊群把路堵死了');
-  },
-
-  /* ============ 失败：狼来了 ============ */
+  /* ============ 失败 ============ */
   fail(reason) {
     if (this.mode !== 'play') return;
     this.mode = 'fail';
@@ -356,9 +408,7 @@ Page({
     const cell = this.data.cell;
     const wr = Math.min(this.N - 1.6, this.gold.r - 0.7);
     const wc = Math.max(0, Math.min(this.N - 1.6, this.gold.c - 0.55));
-    this.setData({
-      wolf: { l: wc * cell, t: wr * cell, s: cell * 1.6 }
-    });
+    this.setData({ wolf: { l: wc * cell, t: wr * cell, s: cell * 1.6 } });
 
     setTimeout(() => {
       this.setData({
@@ -369,40 +419,42 @@ Page({
           + (this.idx - this.idx % TIERS + 1) + ' 关重来。',
         cardSteps: '本关最少 ' + this.data.min + ' 步 · 你用掉 ' + this.used + ' 步'
       });
-    }, 900);
+    }, 700);
   },
 
-  /* 广告位：原型阶段用弹窗模拟，接真广告时换成 wx.createRewardedVideoAd */
+  /* 广告位：原型阶段弹窗模拟，接真广告时换 wx.createRewardedVideoAd */
   watchAd() {
     wx.showModal({
       title: '广告位演示',
-      content: '真实版本这里是一条激励视频，看完给本关加 3 步。每关只能补一次。',
+      content: '真实版本这里是一条激励视频，看完给本关加 3 步 + 3 次悔步。每关只能补一次。',
       confirmText: '当作看完了',
       cancelText: '算了',
       success: (res) => {
         if (!res.confirm) return;
         this.budget += 3;
+        this.undoLeft += 3;
         this.adUsed = true;
         this.mode = 'play';
         this.setData({
           budget: this.budget,
           adUsed: true,
+          undoLeft: this.undoLeft,
           wolf: null,
           card: '',
           low: this.budget - this.used <= 1
         });
-        wx.showToast({ title: '步数 +3', icon: 'none' });
+        wx.showToast({ title: '步数 +3 · 悔步 +3', icon: 'none' });
       }
     });
   },
 
   /* ============ 过关 ============ */
   win() {
+    if (this.mode !== 'play') return;
     this.mode = 'win';
     wx.vibrateShort({ type: 'medium' });
 
     const cell = this.data.cell;
-    // 金羊落门后向下走出棋盘
     this.setData({
       gold: { l: this.gold.c * cell, t: (this.N + 0.5) * cell, s: cell, fade: true }
     });
@@ -424,8 +476,8 @@ Page({
           : ('金羊从这道门挤出来了，这一组还剩 ' + (TIERS - 1 - (this.idx % TIERS)) + ' 道门。'),
         cardSteps: '你用 ' + this.used + ' 步 · 本关最少 ' + this.data.min + ' 步'
       });
-      this.passTimer = setTimeout(() => this.nextLevel(), endOfRound ? 2200 : 1500);
-    }, 420);
+      this.passTimer = setTimeout(() => this.nextLevel(), endOfRound ? 2200 : 1400);
+    }, 400);
   },
 
   nextLevel() {
@@ -439,7 +491,7 @@ Page({
   /* ============ 金羊进省圈 ============ */
   toScene() {
     this.mode = 'scene';
-    const fw = DAY_FW + ROUNDS;      // 六组各 +1 支
+    const fw = DAY_FW + ROUNDS;
     const flock = [];
     for (let i = 0; i < fw; i++) flock.push({ k: 'f' + i, gold: false });
 
@@ -464,7 +516,7 @@ Page({
       store.addFqi(2);
       const key = 'jy_clear_' + new Date().toISOString().slice(0, 10);
       wx.setStorageSync(key, 30);
-    }, 950);
+    }, 900);
   },
 
   buildSparks(boom) {
@@ -500,7 +552,6 @@ Page({
     this.loadLevel(start);
   },
 
-  /* 省圈场景：整天重开 */
   sceneAgain() {
     this.loadLevel(0);
   },
